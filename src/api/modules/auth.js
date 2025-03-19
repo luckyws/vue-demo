@@ -1,3 +1,4 @@
+// C:\Users\王硕\Desktop\毕设\housing-rental-system-frontend\新建文件夹\vue-demo\src\api\modules\auth.js
 import request from "../request";
 
 export default {

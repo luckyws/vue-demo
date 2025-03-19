@@ -1,49 +1,47 @@
+// C:\Users\王硕\Desktop\毕设\housing-rental-system-frontend\新建文件夹\vue-demo\src\api\request.js
 import axios from "axios";
+import router from "@/router";
 
-// 创建一个axios实例，用于发送HTTP请求
 const service = axios.create({
-  // 设置请求超时时间
+  baseURL: "/api",
   timeout: 10000,
 });
 
-// 请求拦截器
+// 请求拦截
 service.interceptors.request.use((config) => {
-  // 从localStorage获取用户token
   const token = localStorage.getItem("token");
-  // 如果token存在，则在请求头中添加Authorization字段
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  // 返回配置好的请求
   return config;
 });
 
-// 响应拦截器
+// 响应拦截
 service.interceptors.response.use(
   (response) => {
-    // 获取响应数据
     const res = response.data;
-    // 打印响应数据，用于调试
-    console.log("res", res);
-    // 处理业务错误（非200状态码）
-    if (res.code != 200) {
-      // 抛出错误，并包含错误信息
+
+    // 与后端约定状态码
+    if (res.code !== 200) {
       return Promise.reject(new Error(res.message || "Error"));
     }
-    // 返回实际数据
+
+    // 直接返回数据体
     return res.data;
   },
   (error) => {
-    // 处理HTTP状态码错误
+    // 处理401错误
     if (error.response?.status === 401) {
-      // 当JWT失效时，移除localStorage中的token，并重定向到登录页
       localStorage.removeItem("token");
-      router.replace("/login");
+      router.replace(
+        `/login?redirect=${encodeURIComponent(
+          router.currentRoute.value.fullPath
+        )}`
+      );
     }
-    // 抛出错误
+
     return Promise.reject(error);
   }
 );
 
-// 导出配置好的axios实例
 export default service;

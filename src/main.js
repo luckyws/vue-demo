@@ -1,12 +1,11 @@
-// main.js
+// src/main.js
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import axios from "@/api/request";
-import ElementPlus from "element-plus";
-import "element-plus/dist/index.css";
+import ElementPlus from "element-plus"; // 确保已导入
+import "element-plus/dist/index.css"; // 必须引入样式
 
 const app = createApp(App);
-app.config.globalProperties.$http = axios;
-app.use(ElementPlus);
-app.use(router).mount("#app");
+app.use(router);
+app.use(ElementPlus); // 必须注册插件
+app.mount("#app");

@@ -1,15 +1,18 @@
+// C:\Users\王硕\Desktop\毕设\housing-rental-system-frontend\新建文件夹\vue-demo\src\router\index.js
 import { createRouter, createWebHistory } from "vue-router";
 
+// 先定义路由配置（不要包含任何router引用）
 const routes = [
   {
     path: "/login",
     name: "login",
     component: () => import("@/views/Login.vue"),
-    meta: { guestOnly: true }, // 仅未登录可访问
+    meta: { guestOnly: true },
   },
   {
     path: "/",
     component: () => import("@/layouts/MainLayout.vue"),
+    redirect: "/home", // 关键：添加根路径重定向
     children: [
       {
         path: "/home",
@@ -17,34 +20,34 @@ const routes = [
         component: () => import("@/views/Home.vue"),
         meta: { requiresAuth: true },
       },
-      // 其他需要导航栏的页面...
     ],
-  },
-  {
-    path: "/:catchAll(.*)", // 捕获所有未定义路由
-    redirect: "/home",
   },
 ];
 
+// 创建路由实例（此时才能使用router变量）
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
 
-// 路由守卫
+// 后置路由守卫配置
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem("token"); // 假设使用token验证
+  const isAuthenticated = localStorage.getItem("token");
 
-  // 需要登录且未登录
+  // 需要认证但未登录 → 跳转登录页
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: "login" });
+    next({ name: "login", query: { redirect: to.fullPath } });
+    return;
   }
-  // 已登录但访问登录页
-  else if (to.meta.guestOnly && isAuthenticated) {
+
+  // 已登录访问登录页 → 跳转首页
+  if (to.meta.guestOnly && isAuthenticated) {
     next({ name: "home" });
-  } else {
-    next();
+    return;
   }
+
+  next();
 });
 
+// 导出实例（必须放在文件最后）
 export default router;
