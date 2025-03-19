@@ -79,6 +79,7 @@ const handleSubmit = async () => {
     await router.push(redirectPath).catch(() => {
       router.replace("/home"); // 容错处理
     });
+    router.replace(route.query.redirect || "/home");
   } catch (error) {
     console.error("登录错误详情:", error);
     ElMessage.error(
