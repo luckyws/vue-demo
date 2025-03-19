@@ -19,15 +19,8 @@ service.interceptors.request.use((config) => {
 // 响应拦截
 service.interceptors.response.use(
   (response) => {
-    const res = response.data;
-
-    // 与后端约定状态码
-    if (res.code !== 200) {
-      return Promise.reject(new Error(res.message || "Error"));
-    }
-
-    // 直接返回数据体
-    return res.data;
+    // 直接返回原始响应数据
+    return response.data;
   },
   (error) => {
     // 处理401错误

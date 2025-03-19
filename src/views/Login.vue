@@ -44,6 +44,7 @@ import { User, Lock } from "@element-plus/icons-vue";
 import { reactive, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import api from "@/api";
+import { ElMessage } from "element-plus";
 
 const router = useRouter();
 const route = useRoute();
@@ -59,11 +60,33 @@ const loading = ref(false);
 const handleSubmit = async () => {
   try {
     loading.value = true;
+
+    // 调用接口（注意结构变化）
     const { data: token } = await api.auth.login(formData);
+    console.log("Token数据:", token); // 此时token应为字符串
+
+    // 验证Token格式
+    if (typeof token !== "string" || !token.includes(".")) {
+      throw new Error("无效的Token格式");
+    }
+
+    // 存储Token
     localStorage.setItem("token", token);
+    console.log("存储的Token:", localStorage.getItem("token"));
+
+    // 路由跳转（增加错误捕获）
     const redirectPath = route.query.redirect || "/home";
-    router.replace(redirectPath);
+    await router.push(redirectPath).catch(() => {
+      router.replace("/home"); // 容错处理
+    });
   } catch (error) {
+    console.error("登录错误详情:", error);
+    ElMessage.error(
+      {
+        无效的Token格式: "接口返回数据异常",
+        "Network Error": "网络连接失败",
+      }[error.message] || "登录失败"
+    );
   } finally {
     loading.value = false;
   }

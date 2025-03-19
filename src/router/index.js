@@ -30,23 +30,40 @@ const router = createRouter({
   routes,
 });
 
-// 后置路由守卫配置
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem("token");
+  const hasToken = localStorage.getItem("token");
+  console.log(
+    `[路由守卫] 目标: ${to.path}, Token: ${hasToken ? "有效" : "无效"}`
+  );
 
-  // 需要认证但未登录 → 跳转登录页
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: "login", query: { redirect: to.fullPath } });
-    return;
+  // 需要认证的页面
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (hasToken) {
+      console.log("[放行] 已认证用户访问受保护页面");
+      next();
+    } else {
+      console.log(`[重定向] 未登录用户尝试访问 ${to.path}`);
+      next({
+        name: "login",
+        query: { redirect: to.fullPath }, // 保留原始目标路径
+      });
+    }
   }
-
-  // 已登录访问登录页 → 跳转首页
-  if (to.meta.guestOnly && isAuthenticated) {
-    next({ name: "home" });
-    return;
+  // 仅允许未登录访问的页面
+  else if (to.matched.some((record) => record.meta.guestOnly)) {
+    if (hasToken) {
+      console.log(`[重定向] 已登录用户访问登录页`);
+      next({ name: "home" });
+    } else {
+      console.log("[放行] 未登录用户访问登录页");
+      next();
+    }
   }
-
-  next();
+  // 其他页面
+  else {
+    console.log("[放行] 公开页面");
+    next();
+  }
 });
 
 // 导出实例（必须放在文件最后）
